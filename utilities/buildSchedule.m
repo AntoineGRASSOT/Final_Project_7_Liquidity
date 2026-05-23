@@ -10,7 +10,7 @@ nYears = ye - y0;    % integer
 schedule = zeros(nYears + 1, 1);
 schedule(1) = t0;
 for k = 1:nYears
-    schedule(k+1) = datenum(y0 + k, m0, d0);
+    schedule(k+1) = modFoll(datenum(y0 + k, m0, d0));
 end
 % last date is exactly te
 schedule(end) = te;
