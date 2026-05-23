@@ -18,6 +18,7 @@ sigma_hat = ;
 
 %% iii) Load corporate bond data (BNPP, Santander)
 today = dates.today ; t0 = dates.settlement ; 
+issuers = {'BNPP', 'Santander'};
 bonds = loadBondData(t0);
 tau_2w = modFoll(addtodate(today, 14, 'day')); % 2 weeks
 tau_2m = modFoll(addtodate(today, 2, 'month')); % 2 months
@@ -32,7 +33,7 @@ OIS.DF = df_OIS;
 ZS_BNPP = bootstrapZSpread(bonds.BNPP, OIS, t0, 'BNPP');
 ZS_Santander = bootstrapZSpread(bonds.Santander, OIS, t0, 'Santander');
 
-
+%% 
 
 
 %  Default probabilities from Table 4 
