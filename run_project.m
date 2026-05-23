@@ -4,37 +4,36 @@ addpath("data\")
 addpath("utilities\")
 addpath("Question_3\")
 
-%%
+%% i) Multi-curve bootstrap (OIS + Euribor 6m)
 formatDate = 'dd/mm/yyyy';
-% bootstrap datas to compute zero rates
 [dates, data] = readExcelData_OIS('curves20150910_project.xlsx', formatDate);
-
-%% multicurve bootstrap question i)
 [df_OIS, dates_OIS] = bootstrapOIS(dates, data);
+
 [E6m_dates, E6m_df] = bootstrapEuribor6m(dates, data, dates_OIS, df_OIS);
 
-%% question ii)
+%% ii)
 % Calibration volatility parameters
 a_hat = ; 
 sigma_hat = ;
 
-%% question iii)
-today = dates.today ; settle = dates.settlement ; 
+%% iii) Load corporate bond data (BNPP, Santander)
+today = dates.today ; t0 = dates.settlement ; 
+bonds = loadBondData(t0);
 tau_2w = modFoll(addtodate(today, 14, 'day')); % 2 weeks
 tau_2m = modFoll(addtodate(today, 2, 'month')); % 2 months
 
-issuers = {'BNPP', 'Santander'};
 taus    = {tau_2w, tau_2m};
 tauLabels = {'2 weeks', '2 months'};
 
-%  Bond data (Tables 2 and 3 of the paper )
-bondData = loadBondData();
+%% Z-spread bootstrap per issuer
+OIS.T = dates_OIS;
+OIS.DF = df_OIS;
 
-%---------  to complete 
-[Z_dates_BNPP, Z_spreads_BNPP] = bootstrapZetaSpread(.bnpp..);
+ZS_BNPP = bootstrapZSpread(bonds.BNPP, OIS, t0, 'BNPP');
+ZS_Santander = bootstrapZSpread(bonds.Santander, OIS, t0, 'Santander');
 
-[Z_dates_SANT, Z_spreads_SANT] = bootstrapZetaSpread(.sant..);
-%-------------
+
+
 
 %  Default probabilities from Table 4 
 % Values given as 1 - P(t0, tau)
