@@ -3,6 +3,7 @@ clc; clear all;
 addpath("data\")
 addpath("utilities\")
 addpath("liquidity\")
+addpath("calibration\")
 
 %% i) MULTI-CURVE BOOTSRAP (OIS + Euribor 6m)
 formatDate = 'dd/mm/yyyy';
