@@ -13,8 +13,8 @@ formatDate = 'dd/mm/yyyy';
 [E6m_dates, E6m_df] = bootstrapEuribor6m(dates, data, dates_OIS, df_OIS);
 
 %% ii) VOLATILITY PARAMETERS' CALIBRATION
-a_hat = ; 
-sigma_hat = ;
+[a_hat, sigma_hat, gamma_hat, calibRes] = calibrateMHW(data, dates, dates_OIS, df_OIS, E6m_dates, E6m_df);
+
 
 %% iii) SHEER LIQUIDITY PREMIUM
 % Load corporate bond data (BNPP, Santander)
