@@ -54,7 +54,7 @@ PD_fl = getPD(EUR6M, t_fl) / PD_al;                  % forward pseudo-DFs
 %
 beta_B = (PD_fl(1:end-1) ./ PD_fl(2:end)) .* B_fl(2:end);   % 2n x 1
 
-%% 6. Vol coefficients  (Lemma 3.1, eqs. 3.5-3.6)
+%% 6. Vol coefficients 
 %   v_{alpha',i} = zeta_a * (1-exp(-a*tau_i))/a
 %   xi_{alpha',i} = (1-gamma) * v_{alpha',i}   [xi in code, varsigma in paper]
 %   nu_{alpha',i} = v_{alpha',i} - gamma * v_{alpha',i+1}  [nu in paper]
