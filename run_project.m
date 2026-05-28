@@ -14,6 +14,9 @@ formatDate = 'dd/mm/yyyy';
 
 %% ii) VOLATILITY PARAMETERS' CALIBRATION
 [a_hat, sigma_hat, gamma_hat, calibRes] = calibrateMHW(data, dates, dates_OIS, df_OIS, E6m_dates, E6m_df);
+MHWparams.a     = a_hat;
+MHWparams.sigma = sigma_hat;
+MHWparams.gamma = gamma_hat;
 
 
 %% iii) SHEER LIQUIDITY PREMIUM
@@ -35,7 +38,7 @@ ZS_BNPP = bootstrapZSpread(bonds.BNPP, OIS, t0, 'BNPP');
 ZS_Santander = bootstrapZSpread(bonds.Santander, OIS, t0, 'Santander');
 ZS_all  = {ZS_BNPP, ZS_Santander};
 
-MHWparams = MHWparams_paper();    
+% MHWparams = MHWparams_paper();    
 
 %% Difference U-L of sheer liquidity premium 
 fprintf('\n=== Difference U-L of sheer liquidity premium ===\n');
