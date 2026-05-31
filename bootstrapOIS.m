@@ -33,7 +33,7 @@ for i = 1:N
     R_i = R(i);
     delta_i = yearfrac(t0, te, 2);   
 
-    if delta_i <= 1.0 + 1/365        
+    if delta_i <= 1.0       
         % P^D(t0, te) = 1 / (1 + delta * R)
         df_OIS(i) = 1 / (1 + delta_i * R_i);
 
