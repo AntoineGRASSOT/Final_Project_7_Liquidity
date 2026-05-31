@@ -12,6 +12,17 @@ formatDate = 'dd/mm/yyyy';
 
 [E6m_dates, E6m_df] = bootstrapEuribor6m(dates, data, dates_OIS, df_OIS);
 
+t0 = dates.settlement;  curves.settle = t0;
+curves.OIS.dates = dates_OIS;      curves.OIS.df  = df_OIS;
+t_OIS = yearfrac(t0, dates_OIS, 3);    % ACT/365
+curves.OIS.t = t_OIS;
+curves.OIS.zeroRate = -log(df_OIS) ./ t_OIS;
+curves.E6m.dates = E6m_dates;    curves.E6m.df = E6m_df;
+t_E6m = yearfrac(t0, E6m_dates, 3);
+curves.E6m.t = t_E6m;
+curves.E6m.zeroRate = -log(E6m_df) ./ t_E6m;
+plotCurves_bootstrap(curves);
+
 %% ii) VOLATILITY PARAMETERS' CALIBRATION
 [a_hat, sigma_hat, gamma_hat, calibRes] = calibrateMHW(data, dates, dates_OIS, df_OIS, E6m_dates, E6m_df);
 MHWparams.a     = a_hat;
