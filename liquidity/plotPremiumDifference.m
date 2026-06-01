@@ -17,7 +17,13 @@ for i = 1:length(issuers)
          'LineWidth', 1.3, 'MarkerFaceColor', 'b'); hold on;
     plot(bonds.(name).maturity, results.(name).diff(:, 2), 'r^--', ...
          'LineWidth', 1.3, 'MarkerFaceColor', 'r');
-    datetick('x', 'yyyy'); grid on;
+    mat = bonds.(name).maturity;
+    yrs = year(min(mat)):(year(max(mat)) + 1);   % include first and last year
+    xt  = datenum(yrs', 1, 1);                    % one tick per year
+    set(gca, 'XTick', xt);
+    xlim([xt(1), xt(end)]);
+    datetick('x', 'yyyy', 'keepticks', 'keeplimits');
+    grid on;
     xlabel('Maturity');
     ylabel('\Delta^U - \Delta^L  (face value)');
     title(sprintf('Upper-lower bound difference of sheer liquidity premium - %s', name));
