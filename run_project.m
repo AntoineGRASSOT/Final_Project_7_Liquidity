@@ -29,7 +29,6 @@ MHWparams.a     = a_hat;
 MHWparams.sigma = sigma_hat;
 MHWparams.gamma = gamma_hat;
 
-
 %% iii) SHEER LIQUIDITY PREMIUM
 % Load corporate bond data (BNPP, Santander)
 t0 = dates.settlement ; 
@@ -47,9 +46,7 @@ OIS.DF = df_OIS;
 
 ZS_BNPP = bootstrapZSpread(bonds.BNPP, OIS, t0, 'BNPP');
 ZS_Santander = bootstrapZSpread(bonds.Santander, OIS, t0, 'Santander');
-ZS_all  = {ZS_BNPP, ZS_Santander};
-
-% MHWparams = MHWparams_paper();    
+ZS_all  = {ZS_BNPP, ZS_Santander};  
 
 %% Difference U-L of sheer liquidity premium 
 fprintf('\n=== Difference U-L of sheer liquidity premium ===\n');
@@ -95,3 +92,58 @@ for i = 1:length(issuers)
 end
 
 plotPremiumDifference(bonds, results, issuers, tauLabels);
+
+%% iv) BOND YIELDS (liquid and illiquid 2w / 2m)
+% For each bond: liquid yield Y from the dirty model price P, illiquid
+% yield y_s from P^s = P - Delta^s (upper bound DU), and liquidity spread
+% L_s = (y_s - Y) in basis points
+fprintf('\n=== Bond yields (liquid / illiquid) ===\n');
+
+yields = struct();
+for i = 1:length(issuers)
+    N = length(bonds.(issuers{i}).maturity);
+    yields.(issuers{i}).Yliq   = zeros(N, 1);                 % liquid yield
+    yields.(issuers{i}).Yill   = zeros(N, length(taus));      % illiquid yields
+    yields.(issuers{i}).spread = zeros(N, length(taus));      % L_s in bp
+end
+
+for i = 1:length(issuers)
+    name    = issuers{i};
+    bonds_i = bonds.(name);
+    ZS_i    = ZS_all{i};
+    N       = length(bonds_i.maturity);
+
+    fprintf('\n--- %s ---\n', name);
+    fprintf('  %-14s   %10s', 'Maturity', 'Y (%)');
+    for j = 1:length(taus)
+        fprintf('   %14s', sprintf('L @ %s (bp)', tauLabels{j}));
+    end
+    fprintf('\n');
+
+    for k = 1:N
+        cd_k = bonds_i.couponDates{k};
+        cf_k = bonds_i.cashflows{k};
+        bond_k = struct('couponDates', cd_k, 'cashflows', cf_k);
+
+        % Liquid price and liquid yield (full cash-flow set)
+        P = bondDirtyModel(bond_k, OIS, ZS_i, t0);
+        Y = bondYield(P, cd_k, cf_k, t0);
+        yields.(name).Yliq(k) = Y;
+
+        fprintf('  %-14s   %10.4f', datestr(bonds_i.maturity(k), 'dd-mmm-yyyy'), Y * 1e2);
+
+        for j = 1:length(taus)
+            Ps = P - results.(name).DU(k, j);      % Illiquid price using the upper-bound premium
+            ys = bondYield(Ps, cd_k, cf_k, t0);    % Illiquid yield on the SAME full cash-flow set
+            Ls = (ys - Y) * 1e4;                   % Liquidity spread in basis points
+
+            yields.(name).Yill(k, j)   = ys;
+            yields.(name).spread(k, j) = Ls;
+
+            fprintf('   %14.4f', Ls);
+        end
+        fprintf('\n');
+    end
+end
+
+plotBondYields(bonds, yields, issuers, tauLabels);
