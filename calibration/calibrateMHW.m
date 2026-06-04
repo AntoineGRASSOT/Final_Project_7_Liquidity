@@ -18,6 +18,8 @@ function [a_hat, sigma_hat, gamma_hat, calibRes] = calibrateMHW(data, dates, dat
 %    calibRes  - diagnostics struct
 
 %% ── 0. Curve structs ─────────────────────────────────────────────────────
+VERBOSE = false; %pre-check flag section 4. Could be used for the debug
+
 t0       = dates.settlement;
 OIS.t0   = t0;          
 OIS.T    = yearfrac(t0, dates_OIS(:), 3);   % ACT/365
@@ -72,19 +74,21 @@ fprintf('   Market prices: [%.4e , %.4e]\n', min(p_mkt), max(p_mkt));
 objFun = @(p) swaptionObj(p, expiry_y, tenor_y, OIS, EUR6M, p_mkt);
 
 % Verbose pre-check: show per-swaption results at p0(1)
-fprintf('\n   Per-swaption check at p0=[0.10, 0.01, 0.001]:\n');
-a0=0.10; s0=0.01; g0=0.001;
-for i = 1:M
-    try
-        pv = mhwPrice(a0,s0,g0,expiry_y(i),tenor_y(i),OIS,EUR6M);
-        sq = (pv - p_mkt(i))^2;
-        fprintf('   %dy%dy: price=%.4e  pmkt=%.4e  sq=%.2e\n', ...
-                expiry_y(i),tenor_y(i), pv, p_mkt(i), sq);
-    catch ME
-        fprintf('   %dy%dy: ERROR -> %s\n', expiry_y(i),tenor_y(i), ME.message);
+if VERBOSE
+    fprintf('\n   Per-swaption check at p0=[0.10, 0.01, 0.001]:\n');
+    a0=0.10; s0=0.01; g0=0.001;
+    for i = 1:M
+        try
+            pv = mhwPrice(a0,s0,g0,expiry_y(i),tenor_y(i),OIS,EUR6M);
+            sq = (pv - p_mkt(i))^2;
+            fprintf('   %dy%dy: price=%.4e  pmkt=%.4e  sq=%.2e\n', ...
+                    expiry_y(i),tenor_y(i), pv, p_mkt(i), sq);
+        catch ME
+            fprintf('   %dy%dy: ERROR -> %s\n', expiry_y(i),tenor_y(i), ME.message);
+        end
     end
+    fprintf('   Objective at p0(1): %.6e\n\n', objFun([a0,s0,g0]));
 end
-fprintf('   Objective at p0(1): %.6e\n\n', objFun([a0,s0,g0]));
 
 %% ── 5. fmincon ───────────────────────────────────────────────────────────
 lb  = [1e-4, 1e-4, 0.0];
@@ -128,6 +132,26 @@ end
 err_bps    = vi_bps - vol_bps;      % model - market  [bps]
 RMSE_price = sqrt(best_val / M);
 RMSE_vol   = sqrt(mean(err_bps.^2));
+
+%% ── 6b. Calibration plot ────────────────────────────────────────────────
+labels = arrayfun(@(e,t) sprintf('%dy%dy',e,t), expiry_y, tenor_y, ...
+                  'UniformOutput', false);
+
+figure('Name','MHW calibration','Color','w','Position',[100 100 760 540]);
+
+subplot(2,1,1);
+plot(expiry_y, vol_bps, 'o-', 'LineWidth',1.4, 'MarkerSize',6); hold on;
+plot(expiry_y, vi_bps,  's--','LineWidth',1.4, 'MarkerSize',6);
+grid on; box on; xticks(expiry_y); xticklabels(labels);
+ylabel('Normal vol (bps)');
+legend('Market','MHW','Location','best');
+title(sprintf('Co-terminal 10y diagonal — Vol RMSE = %.2f bps', RMSE_vol));
+
+subplot(2,1,2);
+bar(expiry_y, err_bps, 0.6);
+grid on; box on; xticks(expiry_y); xticklabels(labels);
+ylabel('Error (bps)'); xlabel('Swaption');
+title('MHW - Market implied vol');
 
 %% ── 7. Output struct ─────────────────────────────────────────────────────
 calibRes.price_mkt    = p_mkt;

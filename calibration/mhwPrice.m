@@ -18,61 +18,49 @@ function [price, xstar, S_atm] = mhwPrice(a, sigma, gamma, t_alpha, n_years, OIS
 %    xstar   - critical value x* 
 %    S_atm   - ATM forward swap rate
 
-t0 = OIS.t0;
-n  = n_years;
 
-expiry_y      = t_alpha;
-expiry_months = round(12 * expiry_y);
-d_alpha       = addMonths(t0, expiry_months);
-T_alpha       = yearfrac(t0, d_alpha, 3);            % ACT/365
+%% 1. ATM swap rate and schedule/curves
+[S_atm, ~, ~, s] = swapRateATM(t_alpha, n_years, OIS, EUR6M);
 
-%% 1. Discount factor at expiry
-B_alpha = getDF(OIS, T_alpha);
+T_alpha = s.T_alpha;
+B_alpha = s.B_float(1);      
+PD_al   = s.PD_float(1);    
 
-%% 2. zeta_alpha  
-zeta_a = mhwZeta(a, sigma, T_alpha);
+zeta_a  = mhwZeta(a, sigma, T_alpha);
 
-%% 3. ATM swap rate 
-[S_atm, ~, ~] = swapRateATM(expiry_y, n_years, OIS, EUR6M);
+%% 2. Fixed leg (forward OIS DFs)
+t_fix  = s.t_fix;
+dlt_fx = s.delta_fix;                 % 30/360
+B_fix  = s.B_fix / B_alpha;           % forward OIS DFs
 
-%% 4. Fixed-leg
-d_fix     = addMonths(d_alpha, (1:n)' * 12);         
-t_fix     = yearfrac(t0, d_fix, 3);                  % ACT/365
-B_fix     = getDF(OIS, t_fix) / B_alpha;             % forward OIS DFs
-
-d_fix_all = [d_alpha; d_fix];
-dlt_fx    = yearfrac(d_fix_all(1:end-1), d_fix_all(2:end), 6);  % 30/360 
-
-%% 5. Floating-leg
-d_fl  = addMonths(d_alpha, (0:2*n)' * 6);           
-t_fl  = yearfrac(t0, d_fl, 3);
-B_fl  = getDF(OIS,   t_fl) / B_alpha;                % forward OIS DFs 
-PD_al = getPD(EUR6M, T_alpha);
-PD_fl = getPD(EUR6M, t_fl) / PD_al;                  % forward pseudo-DFs 
+%% 3. Floating leg (forward OIS / pseudo DFs)
+t_fl   = s.t_float;
+B_fl   = s.B_float  / B_alpha;        % forward OIS DFs
+PD_fl  = s.PD_float / PD_al;          % forward pseudo-DFs
 
 %% beta_B(k) = B_{alpha'k+1}(t0) * beta_k(t0)  - END-of-period OIS DF
-%
 beta_B = (PD_fl(1:end-1) ./ PD_fl(2:end)) .* B_fl(2:end);   % 2n x 1
 
-%% 6. Vol coefficients 
+%% 4. Vol coefficients
 %   v_{alpha',i} = zeta_a * (1-exp(-a*tau_i))/a
-%   xi_{alpha',i} = (1-gamma) * v_{alpha',i}   [xi in code, varsigma in paper]
-%   nu_{alpha',i} = v_{alpha',i} - gamma * v_{alpha',i+1}  [nu in paper]
+%   xi_{alpha',i} = (1-gamma) * v_{alpha',i}  
+%   nu_{alpha',i} = v_{alpha',i} - gamma * v_{alpha',i+1}  
 
-tau_fix = t_fix - T_alpha;   % year fracs from expiry  (n x 1)
-tau_fl  = t_fl  - T_alpha;   % year fracs from expiry  (2n+1 x 1)
+tau_fix = t_fix - T_alpha;            % year fracs dall'expiry  (n x 1)
+tau_fl  = t_fl  - T_alpha;            % year fracs dall'expiry  (2n+1 x 1)
 
-v_fix  = mhwV(a, zeta_a, tau_fix);    % n x 1
-v_fl   = mhwV(a, zeta_a, tau_fl);     % 2n+1 x 1  (v_fl(1)=0 at tau=0)
+v_fix  = mhwV(a, zeta_a, tau_fix);
+v_fl   = mhwV(a, zeta_a, tau_fl);
 
-xi_fix = (1 - gamma) * v_fix;                        
-xi_fl  = (1 - gamma) * v_fl;                          
-nu_fl  = v_fl(1:end-1) - gamma * v_fl(2:end);         
+xi_fix = (1 - gamma) * v_fix;
+xi_fl  = (1 - gamma) * v_fl;
+nu_fl  = v_fl(1:end-1) - gamma * v_fl(2:end);
 
-%% 7. S(x) function 
+
+%% 5. S(x) function 
 S_fun = @(x) computeSwapRate(x, xi_fix, dlt_fx, B_fix, xi_fl, nu_fl, B_fl, beta_B);
 
-%% 8. Find x*  (unique zero of S_atm - S(x))
+%% 6. Find x*  (unique zero of S_atm - S(x))
 f_zero   = @(x) S_atm - S_fun(x);
 x_grid   = linspace(-6, 6, 301);
 f_grid   = f_zero(x_grid);                           
@@ -89,7 +77,7 @@ catch
     return;
 end
 
-%% 9. Integration - composite Simpson on 400 subintervals
+%% 7. Integration - composite Simpson on 400 subintervals
 x_lo = -8;
 if xstar <= x_lo
     price = 0;
