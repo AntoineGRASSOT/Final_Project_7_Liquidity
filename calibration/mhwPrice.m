@@ -28,12 +28,12 @@ PD_al   = s.PD_float(1);
 
 zeta_a  = mhwZeta(a, sigma, T_alpha);
 
-%% 4. Fixed leg (forward OIS DFs)
+%% 2. Fixed leg (forward OIS DFs)
 t_fix  = s.t_fix;
 dlt_fx = s.delta_fix;                 % 30/360
 B_fix  = s.B_fix / B_alpha;           % forward OIS DFs
 
-%% 5. Floating leg (forward OIS / pseudo DFs)
+%% 3. Floating leg (forward OIS / pseudo DFs)
 t_fl   = s.t_float;
 B_fl   = s.B_float  / B_alpha;        % forward OIS DFs
 PD_fl  = s.PD_float / PD_al;          % forward pseudo-DFs
@@ -41,7 +41,7 @@ PD_fl  = s.PD_float / PD_al;          % forward pseudo-DFs
 %% beta_B(k) = B_{alpha'k+1}(t0) * beta_k(t0)  - END-of-period OIS DF
 beta_B = (PD_fl(1:end-1) ./ PD_fl(2:end)) .* B_fl(2:end);   % 2n x 1
 
-%% 6. Vol coefficients
+%% 4. Vol coefficients
 %   v_{alpha',i} = zeta_a * (1-exp(-a*tau_i))/a
 %   xi_{alpha',i} = (1-gamma) * v_{alpha',i}  
 %   nu_{alpha',i} = v_{alpha',i} - gamma * v_{alpha',i+1}  
@@ -57,10 +57,10 @@ xi_fl  = (1 - gamma) * v_fl;
 nu_fl  = v_fl(1:end-1) - gamma * v_fl(2:end);
 
 
-%% 7. S(x) function 
+%% 5. S(x) function 
 S_fun = @(x) computeSwapRate(x, xi_fix, dlt_fx, B_fix, xi_fl, nu_fl, B_fl, beta_B);
 
-%% 8. Find x*  (unique zero of S_atm - S(x))
+%% 6. Find x*  (unique zero of S_atm - S(x))
 f_zero   = @(x) S_atm - S_fun(x);
 x_grid   = linspace(-6, 6, 301);
 f_grid   = f_zero(x_grid);                           
@@ -77,7 +77,7 @@ catch
     return;
 end
 
-%% 9. Integration - composite Simpson on 400 subintervals
+%% 7. Integration - composite Simpson on 400 subintervals
 x_lo = -8;
 if xstar <= x_lo
     price = 0;
