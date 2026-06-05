@@ -22,7 +22,7 @@ VERBOSE = false; %pre-check flag section 4. Could be used for the debug
 
 t0       = dates.settlement;
 OIS.t0   = t0;          
-OIS.T    = yearfrac(t0, dates_OIS(:), 3);   % ACT/365
+OIS.T    = yearfrac(t0, dates_OIS(:), 3);   
 OIS.DF   = df_OIS(:);
 
 EUR6M.t0 = t0;
@@ -129,7 +129,7 @@ for i = 1:M
                     B_vec(i), C_vec(i), p_mod(i)) * 1e4;
 end
 
-err_bps    = vi_bps - vol_bps;      % model - market  [bps]
+err_bps    = vi_bps - vol_bps;      % in bps
 RMSE_price = sqrt(best_val / M);
 RMSE_vol   = sqrt(mean(err_bps.^2));
 
