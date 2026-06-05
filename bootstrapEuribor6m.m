@@ -1,5 +1,18 @@
 function [E6m_dates, E6m_df] = bootstrapEuribor6m(dates, data, OIS_dates, OIS_df)
 % BOOTSTRAPEURIBOR6M  Bootstrap the Euribor 6m pseudo-discount curve
+%
+% Inputs:
+%   dates     - what we get with readExcelData_OIS
+%             dates.settlement : settlement date
+%             dates.ois(i)     : end dates of OIS instruments
+%   data      - from readExcelData_OIS
+%             data.ois_rates   : [Bid | Ask | Mid], mid = column 3
+%   OIS_dates - dates obtained with the OIS bootstrap
+%   OIS_df    - DF corresponding to the OIS dates
+%
+% Outputs:
+%  E6m_df     - discount factors obtained with the Euribor 6m bootstrap
+%  E6m_dates  - corresponding dates
 
 t0 = dates.settlement;  
 
@@ -8,11 +21,8 @@ t_hat = addMonths(t0, (1:12)');   % (12x1)
 
 t_hat18 = addMonths(t0, 18);   % t̂_18 (18 months)
 
-% Annual knots 2y...12y: use the IRS end dates from data
-% These are dates.libor6m(2:end) -> 1y is index 1, 2y is index 2, etc.
-% We skip 6m (index 1) and 1y (index 2) since those are already handled
 IRS_endDates = dates.libor6m(:);     % 13 dates: 6m,1y,2y,...,12y
-IRS_rates    = data.libor6m_prices;  % 13 rates (already /100)
+IRS_rates    = data.libor6m_prices;  % 13 rates
 
 % Full set of curve knots
 knot_dates = t0;  % Initialize with t0 (pseudo-df = 1 by definition)
@@ -61,7 +71,7 @@ fprintf('  Step 2: P(t0, t̂_12) = %.8f   [6x12 FRA = %.4f%%]\n', P_12, F_6x12*1
 
 % STEP 3a: Interpolate P(t̂_7)...P(t̂_11)
 %          Linear on zero rates between t̂_6 and t̂_12
-% We  have exactly two anchor points: P(t̂_6) and P(t̂_12)
+% We  have two anchor points: P(t̂_6) and P(t̂_12)
 % Interpolate at t̂_7, t̂_8, t̂_9, t̂_10, t̂_11
 
 for k = 7:11
@@ -101,7 +111,7 @@ for i = 1:5
     fprintf('    t̂_%d: P = %.8f  [FRA %dx%d = %.4f%%]\n', ...
         i, P_i, i, i+6, F_i*100);
 end
-[knot_dates, si] = sort(knot_dates); % Sort again after adding monthly knots
+[knot_dates, si] = sort(knot_dates); 
 knot_df = knot_df(si);
 
 % STEP 5: 18m and 2y swaps -> F_3, F_4
@@ -194,14 +204,14 @@ knot_df = knot_df(si);
 IRS_long_dates = IRS_endDates(4:end);    % 3y...12y (10 maturities)
 IRS_long_rates = IRS_rates(4:end);
 
-% We need to track all semi-annual forward rates F_k and their w_k weights
+% we need all semi-annual forward rates F_k and their w_k weights
 % Collect them in order: F_1...F_4 already known
 % F_k corresponds to period [t_{k-1}^flt, t_k^flt] (semi-annual)
 
 % Build the full floating leg schedule up to 12y (semi-annual, mod-foll)
 % t̃_0 = t0, t̃_1=t̂_6, t̃_2=t̂_12, t̃_3=t̂_18, t̃_4=t_2y, ..., t̃_24=t_12y
 t_flt_full = addMonths(t0, (6:6:144)');   % 6m,12m,...,144m (6 to 144)
-% Force the annual knots to match exactly the IRS end dates
+
 for k = 1:length(IRS_endDates)
     % replace t_flt_full entries close to each annual knot
     [minval, idx] = min(abs(t_flt_full - IRS_endDates(k)));

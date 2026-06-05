@@ -1,5 +1,14 @@
 function df = interpolateOIS(t0, knownDates, knownDFs, targetDates)
 % Linear on zero rates z(t) = -ln(P)/(t-t0), ACT/365
+%
+% INPUTS
+%   t0          : valuation date 
+%   knownDates  : vector of known dates
+%   knownDFs    : DF associated to known dates
+%   targetDates : dates at which discount factors are required
+%                 
+% OUTPUT
+%   df          : interpolated discount factors at targetDates
 
 targetDates = targetDates(:);
 knownDates  = knownDates(:);

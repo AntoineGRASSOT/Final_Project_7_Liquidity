@@ -24,9 +24,6 @@ N = length(R);
 df_OIS    = zeros(N, 1);
 dates_OIS = endDates;
 
-% 7 instruments: 1w 2w 1m 2m 3m 6m 1y  => deposits
-% 11 instruments: 2y ... 12y              => OIS swaps
-
 for i = 1:N
 
     te = endDates(i);
