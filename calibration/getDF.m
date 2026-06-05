@@ -21,9 +21,9 @@ z = -log(OIS.DF(:)) ./ t;          % zero rates at pillars
 sz      = size(T_query);
 T_query = T_query(:);               % flatten to column
 
-%% --- vectorised interpolation with flat extrapolation -----------------
+%% --- interpolation with flat extrapolation -----------------
 %  Clamping T_query to [t(1), t(end)] before interp1 achieves flat
-%  extrapolation on both sides in a single call (no NaN, no branches).
+%  extrapolation on both sides.
 T_clamp = max(t(1), min(t(end), T_query));
 z_query = interp1(t, z, T_clamp, 'linear');
 
