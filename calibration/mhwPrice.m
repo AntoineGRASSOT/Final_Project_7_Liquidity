@@ -85,10 +85,10 @@ if xstar <= x_lo
 end
 
 N_pts = 400;                                           
-xv    = linspace(x_lo, xstar, N_pts + 1);             % 1 x (N_pts+1)
+xv    = linspace(x_lo, xstar, N_pts + 1);             
 dx    = (xstar - x_lo) / N_pts;
 
-fv = integrandVec(xv, S_fun, S_atm, n_years);         % 1 x (N_pts+1)
+fv = integrandVec(xv, S_fun, S_atm, n_years);         
 
 % Composite Simpson weights: 1, 4, 2, 4, 2, ..., 4, 1
 w            = 2 * ones(1, N_pts + 1);
