@@ -1,4 +1,8 @@
 function pi_L = piLower(Sigma_i, Sigma_N)
+% this function computes by closed formula the term pi_lower needed in the
+% formula for the illiquid bonds
+%
+% the 2 inputs are the cumulated vol needed for the computation
 
 A = @(eta) exp(-eta/2 .* Sigma_i .* (Sigma_i-Sigma_N));
 B = @(eta) 1 + sqrt(pi/2 .* (1-eta)) .* Sigma_N .* exp((1-eta)/8 .* Sigma_N.^2) .*...

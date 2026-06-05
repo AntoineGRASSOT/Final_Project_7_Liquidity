@@ -1,4 +1,6 @@
 function [Sigma_i, Sigma_N] = cumulatedVol(MHWparams, tau, ti, tN, t0)
+% this function computes by closed formula the cumulated vol SIGMA to be 
+% used later in the closed formulas of pi_upper and pi_lower 
 
 a = MHWparams.a;
 sigma = MHWparams.sigma;
