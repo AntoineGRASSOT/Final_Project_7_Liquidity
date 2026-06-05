@@ -4,7 +4,7 @@ function vol = bachelierCS_implVol(S0, K, T_exp, B_alpha, C_S0, price_mkt)
 %  Numerically inverts bachelierCS to find sigma such that:
 %    bachelierCS(S0, K, T_exp, B_alpha, C_S0, sigma) = price_mkt
 %
-%  Uses bisection on [0, 5]. Prices are monotone increasing in volatility.
+%  Uses bisection on [0, 5]. 
 %
 %  Inputs/outputs are the same as bachelierCS, with price_mkt replacing vol_norm.
 %  Output vol is the normal implied volatility in decimal form.
