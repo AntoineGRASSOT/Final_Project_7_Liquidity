@@ -9,7 +9,7 @@ function [price, xstar, S_atm] = mhwPrice(a, sigma, gamma, t_alpha, n_years, OIS
 %  Inputs:
 %    a, sigma, gamma  - MHW model parameters 
 %    t_alpha          - swaption expiry as year fraction ACT/365 from OIS.t0
-%    n_years          - swap tenor in years (integer)
+%    n_years          - swap tenor in years 
 %    OIS              - struct: t0, T, DF  
 %    EUR6M            - struct: t0, T, PD
 %
@@ -38,7 +38,7 @@ t_fl   = s.t_float;
 B_fl   = s.B_float  / B_alpha;        % forward OIS DFs
 PD_fl  = s.PD_float / PD_al;          % forward pseudo-DFs
 
-%% beta_B(k) = B_{alpha'k+1}(t0) * beta_k(t0)  - END-of-period OIS DF
+%% beta_B(k) = B_{alpha'k+1}(t0) * beta_k(t0)  
 beta_B = (PD_fl(1:end-1) ./ PD_fl(2:end)) .* B_fl(2:end);   % 2n x 1
 
 %% 4. Vol coefficients
@@ -46,8 +46,8 @@ beta_B = (PD_fl(1:end-1) ./ PD_fl(2:end)) .* B_fl(2:end);   % 2n x 1
 %   xi_{alpha',i} = (1-gamma) * v_{alpha',i}  
 %   nu_{alpha',i} = v_{alpha',i} - gamma * v_{alpha',i+1}  
 
-tau_fix = t_fix - T_alpha;            % year fracs dall'expiry  (n x 1)
-tau_fl  = t_fl  - T_alpha;            % year fracs dall'expiry  (2n+1 x 1)
+tau_fix = t_fix - T_alpha;            % year fracs from expiry  (n x 1)
+tau_fl  = t_fl  - T_alpha;            % year fracs from expiry  (2n+1 x 1)
 
 v_fix  = mhwV(a, zeta_a, tau_fix);
 v_fl   = mhwV(a, zeta_a, tau_fl);
