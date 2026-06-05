@@ -3,7 +3,7 @@ function [S_atm, BPV, N_float, sched] = swapRateATM(t_alpha, n_years, OIS, EUR6M
 %
 %   S_{alpha,omega}(t0) = N_float / BPV  
 %  for a Euribor 6m swap with EUR market conventions:
-%    - fixed leg  : annual,       30/360   (basis=6)
+%    - fixed leg  : annual,       30/360   
 %    - floating leg: semi-annual, ACT/360 from pseudo-DF Euribor 6m
 %
 %  Payment dates are generated via addMonths (modified-following convention).
@@ -11,7 +11,7 @@ function [S_atm, BPV, N_float, sched] = swapRateATM(t_alpha, n_years, OIS, EUR6M
 %  Inputs:
 %    t_alpha  - swap start as year fraction ACT/365 from OIS.t0
 %    n_years  - tenor in years (integer)
-%    OIS      - struct: t0, T, DF   (bootstrap format)
+%    OIS      - struct: t0, T, DF   
 %    EUR6M    - struct: t0, T, PD
 %
 %  Outputs:
